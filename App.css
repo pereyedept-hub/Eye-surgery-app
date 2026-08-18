@@ -1,0 +1,392 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f6f8;
+}
+
+.app {
+  min-height: 100vh;
+}
+
+.header {
+  background: #1f4e79;
+  color: white;
+  padding: 30px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.header p {
+  margin-bottom: 0;
+}
+
+.dashboard {
+  max-width: 1100px;
+  margin: 30px auto;
+  padding: 0 20px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.card {
+  background: white;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.card h2 {
+  margin-top: 0;
+}
+
+.number {
+  font-size: 36px;
+  font-weight: bold;
+  margin: 15px 0 5px;
+}
+
+.actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 15px;
+}
+
+button {
+  background: #1f4e79;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+@media (max-width: 700px) {
+  .dashboard {
+    grid-template-columns: 1fr;
+  }
+
+  .actions {
+    grid-column: auto;
+    flex-direction: column;
+  }
+
+  .header {
+    padding: 20px;
+  }
+
+  .header h1 {
+    font-size: 22px;
+  }
+}
+.upload-button {
+  background: #1f4e79;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.upload-button:hover {
+  opacity: 0.9;
+}
+
+.records-table {
+  grid-column: 1 / -1;
+  background: white;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+}
+
+th {
+  background: #f4f6f8;
+}
+.checklist {
+  grid-column: 1 / -1;
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+}
+
+.checklist-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 25px;
+}
+
+.checklist-title {
+  text-align: center;
+  border-bottom: 2px solid #ddd;
+  padding-bottom: 20px;
+  margin-bottom: 25px;
+}
+
+.checklist-title h1 {
+  font-size: 20px;
+  margin: 5px;
+}
+
+.checklist-title h2 {
+  font-size: 17px;
+  margin: 5px;
+}
+
+.checklist section {
+  margin-bottom: 30px;
+}
+
+.checklist section h3 {
+  border-bottom: 2px solid #1f4e79;
+  padding-bottom: 8px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-grid label,
+.field label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.form-grid input,
+.field input,
+.checklist-table input {
+  width: 100%;
+  padding: 9px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+.checklist-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.checklist-table th,
+.checklist-table td {
+  border: 1px solid #aaa;
+  padding: 8px;
+}
+
+.checklist-table th {
+  background: #f4f6f8;
+}
+
+/* Admission date modal */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 100;
+}
+
+.modal-box {
+  background: white;
+  border-radius: 10px;
+  padding: 30px;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.modal-box h2 {
+  margin-top: 0;
+}
+
+.modal-box p {
+  color: #555;
+  font-size: 14px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.secondary-button,
+button.secondary-button {
+  background: #eef1f4;
+  color: #1f4e79;
+}
+
+.empty-note {
+  color: #777;
+  font-style: italic;
+}
+
+.api-notice {
+  background: #fff3cd;
+  color: #7a5b00;
+  border-bottom: 1px solid #ffe08a;
+  padding: 12px 20px;
+  font-size: 14px;
+  text-align: center;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.theatre-list-page > div {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.theatre-list-page .table-container input {
+  width: 100%;
+  min-width: 90px;
+  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.checklist-table td:first-child {
+  width: 25%;
+  font-weight: bold;
+}
+
+.investigation-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.field {
+  margin-bottom: 15px;
+}
+
+@media (max-width: 700px) {
+
+  .checklist {
+    padding: 15px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .investigation-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .checklist-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .checklist-title h1 {
+    font-size: 16px;
+  }
+
+  .checklist-title h2 {
+    font-size: 14px;
+  }
+
+}
+@media print {
+
+  body * {
+    visibility: hidden;
+  }
+
+  .theatre-list-page,
+  .theatre-list-page * {
+    visibility: visible;
+  }
+
+  .theatre-list-page {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  .theatre-list-page button {
+    display: none;
+  }
+
+  /* Inputs still need to show their current value when printing,
+     so we keep them but strip the styling to look like plain text */
+  .theatre-list-page input {
+    border: none;
+    background: transparent;
+    padding: 0;
+    width: 100%;
+    font-size: 11px;
+  }
+
+  .theatre-list-page table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .theatre-list-page th,
+  .theatre-list-page td {
+    border: 1px solid #000;
+    padding: 6px;
+    font-size: 11px;
+  }
+
+  /* Hide the Remove column when printing */
+  .theatre-list-page th:last-child,
+  .theatre-list-page td:last-child {
+    display: none;
+  }
+
+  .theatre-list-page h2 {
+    text-align: center;
+    margin-bottom: 15px;
+  }
+
+}
