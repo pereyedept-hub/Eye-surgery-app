@@ -63,6 +63,8 @@ export const api = {
 
   uploadRecords: (records) => apiPost('uploadRecords', { records }),
 
+  syncFromSource: () => apiPost('syncFromSource'),
+
   saveChecklist: (patientId, checklist) =>
     apiPost('saveChecklist', { patientId, checklist }),
 

@@ -103,6 +103,7 @@ function App() {
   const [theatreList, setTheatreList] = useState([])
   const [completedRecords, setCompletedRecords] = useState({})
   const [apiNotice, setApiNotice] = useState(null)
+  const [syncing, setSyncing] = useState(false)
 
   // Load the shared records + completed-checklist status from the
   // Google Sheet backend as soon as the app opens, so everyone sees
@@ -242,6 +243,27 @@ function App() {
     reader.readAsArrayBuffer(file)
   }
 
+  const handleSyncFromSource = async () => {
+    if (!isApiConfigured()) {
+      alert('This app isn\u2019t connected to the shared Google Sheet yet.')
+      return
+    }
+
+    setSyncing(true)
+
+    try {
+      await api.syncFromSource()
+      const freshRecords = await api.getRecords()
+      setRecords(freshRecords)
+      setSelectedRecord(null)
+      alert('Records refreshed from your Google Sheet.')
+    } catch (err) {
+      alert(`Couldn\u2019t sync from the Google Sheet: ${err.message}`)
+    } finally {
+      setSyncing(false)
+    }
+  }
+
   const pendingCount = records.filter(
     (record) => !completedRecords[getPatientId(record)]
   ).length
@@ -298,6 +320,10 @@ function App() {
               hidden
             />
           </label>
+
+          <button onClick={handleSyncFromSource} disabled={syncing}>
+            {syncing ? 'Syncing…' : 'Sync from Google Sheet'}
+          </button>
 
         </div>
 
