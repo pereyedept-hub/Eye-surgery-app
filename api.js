@@ -5,8 +5,9 @@
  * the top of that file), paste the URL you're given below.
  */
 const API_URL = 'https://script.google.com/macros/s/AKfycbzFNXAl-hGEK_mWj1JbbsH2vyJeanu1iOQFJkFsSIq3fNsc7_DVeNLaRhypBwZ_GDWG1w/exec'
+
 export const isApiConfigured = () =>
-   Boolean(API_URL) && !API_URL.includes('PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE')
+  Boolean(API_URL) && !API_URL.includes('PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE')
 async function apiGet(action, params = {}) {
   const query = new URLSearchParams({ action, ...params }).toString()
   const res = await fetch(`${API_URL}?${query}`)
