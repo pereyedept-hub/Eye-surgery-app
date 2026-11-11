@@ -121,6 +121,7 @@ function App() {
   const [records, setRecords] = useState([])
   const [recordsLoading, setRecordsLoading] = useState(true)
   const [selectedRecord, setSelectedRecord] = useState(null)
+  const [caseSheetRecord, setCaseSheetRecord] = useState(null)
 
   const [searchTerm, setSearchTerm] = useState('')
   const [showTheatreList, setShowTheatreList] = useState(false)
@@ -378,7 +379,7 @@ function App() {
         )}
 
         {/* Records table */}
-        {records.length > 0 && !selectedRecord && (
+        {records.length > 0 && !selectedRecord && !caseSheetRecord && (
 
           <div className="records-table">
             <div className="theatre-button-row">
@@ -435,9 +436,14 @@ function App() {
                       </td>
 
                       <td>
-                        <button onClick={() => setSelectedRecord(record)}>
-                          Open Checklist
-                        </button>
+                        <div className="row-actions">
+                          <button onClick={() => setSelectedRecord(record)}>
+                            Open Checklist
+                          </button>
+                          <button onClick={() => setCaseSheetRecord(record)}>
+                            Case Sheet
+                          </button>
+                        </div>
                       </td>
 
                     </tr>
@@ -466,6 +472,15 @@ function App() {
             }
           />
 
+        )}
+
+        {/* Case Sheet */}
+
+        {caseSheetRecord && (
+          <CaseSheet
+            record={caseSheetRecord}
+            onBack={() => setCaseSheetRecord(null)}
+          />
         )}
 
         {/* Theatre List */}
@@ -1116,6 +1131,302 @@ function EditableField({
         value={value || ''}
         onChange={(e) => onChange(e.target.value)}
       />
+
+    </div>
+  )
+}
+
+/* =====================================================
+   EYE EXAMINATION CASE SHEET
+   Pre-filled from the Google Sheet record; everything stays editable.
+   Fields the sheet doesn't hold are left blank for the doctor.
+   ===================================================== */
+
+function EditableTextArea({ label, value, onChange, rows = 3 }) {
+  return (
+    <div className="field">
+      <label>{label}</label>
+      <textarea
+        rows={rows}
+        value={value || ''}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </div>
+  )
+}
+
+function admissionDisplay(record, eye) {
+  const ymd = normalizeDate(getAdmissionDate(record, eye))
+  return ymd ? formatDateDisplay(ymd) : ''
+}
+
+function CaseSheet({ record, onBack }) {
+
+  const patientId = getPatientId(record)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+
+  const [formData, setFormData] = useState({
+    // ---- pre-filled from the sheet ----
+    name: getValue(record, 'Name'),
+    age: getValue(record, 'Age'),
+    sex: getValue(record, 'Sex'),
+    umid: getValue(record, 'UMID Number'),
+    crNo: getValue(record, 'CR Number'),
+    phone: getValue(record, 'Phone number'),
+    diagnosis: getValue(record, 'Diagnosis'),
+    systemicIllness: getValue(record, 'Systemic Illness'),
+    remarks: getValue(record, 'Remarks'),
+
+    visionRE: getValue(record, 'Vision [Right Eye ]'),
+    visionLE: getValue(record, 'Vision [Left Eye ]'),
+    iopRE: getValue(record, 'RE IOP'),
+    iopLE: getValue(record, 'LE IOP'),
+    anteriorRE: getValue(record, 'RE ANTERIOR SEGMENT'),
+    anteriorLE: getValue(record, 'LE ANTERIOR SEGMENT'),
+    fundusRE: getValue(record, 'RE Fundus'),
+    fundusLE: getValue(record, 'LE Fundus'),
+
+    k1RE: getValue(record, 'RE K1'),
+    k1LE: getValue(record, 'LE K1'),
+    k2RE: getValue(record, 'RE K2'),
+    k2LE: getValue(record, 'LE K2'),
+    axialRE: getValue(record, 'RE Axial Length'),
+    axialLE: getValue(record, 'LE Axial Length'),
+    acdRE: getValue(record, 'RE ACD'),
+    acdLE: getValue(record, 'LE ACD'),
+    iolRE: getValue(record, 'REIOL Power'),
+    iolLE: getValue(record, 'LEIOL Power'),
+
+    reAdmission: admissionDisplay(record, 'RE'),
+    leAdmission: admissionDisplay(record, 'LE'),
+
+    // ---- filled in by the doctor ----
+    examDate: formatDateYMD(new Date()),
+    address: '',
+    complaints: '',
+    duration: '',
+    presentHistory: '',
+    pastOcular: '',
+    pastSurgical: '',
+    drugAllergy: '',
+    familyHistory: '',
+
+    pinholeRE: '', pinholeLE: '',
+    bcvaRE: '', bcvaLE: '',
+    refractionRE: '', refractionLE: '',
+
+    lidsRE: '', lidsLE: '',
+    conjunctivaRE: '', conjunctivaLE: '',
+    corneaRE: '', corneaLE: '',
+    acRE: '', acLE: '',
+    irisPupilRE: '', irisPupilLE: '',
+    lensStatusRE: '', lensStatusLE: '',
+
+    treatment: '',
+    surgeryEye: '',
+    surgeryProcedure: '',
+    followUp: '',
+    examinedBy: ''
+  })
+
+  useEffect(() => {
+    if (!isApiConfigured()) {
+      setLoading(false)
+      return
+    }
+
+    let cancelled = false
+
+    api
+      .getCaseSheet(patientId)
+      .then((saved) => {
+        if (!cancelled && saved) {
+          // saved values win over the sheet pre-fill
+          setFormData((prev) => ({ ...prev, ...saved }))
+        }
+      })
+      .catch(() => {
+        // nothing saved yet, or request failed: keep the pre-filled values
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [patientId])
+
+  const updateField = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const handleSave = async () => {
+    if (!isApiConfigured()) {
+      alert('This app isn\u2019t connected to the shared Google Sheet yet, so this case sheet can\u2019t be saved.')
+      return
+    }
+
+    setSaving(true)
+
+    try {
+      await api.saveCaseSheet(patientId, formData)
+      alert('Case sheet saved successfully!')
+    } catch (err) {
+      alert(`Couldn\u2019t save the case sheet: ${err.message}`)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const eyeRow = (label, key) => (
+    <EditableEyeRow
+      label={label}
+      re={formData[key + 'RE']}
+      le={formData[key + 'LE']}
+      onChangeRE={(v) => updateField(key + 'RE', v)}
+      onChangeLE={(v) => updateField(key + 'LE', v)}
+    />
+  )
+
+  return (
+    <div className="checklist case-sheet">
+
+      <div className="checklist-header">
+
+        <button onClick={onBack}>
+          ← Back to Records
+        </button>
+
+        <div>
+          <button onClick={handleSave} disabled={saving}>
+            {saving ? 'Saving…' : 'Save Case Sheet'}
+          </button>
+
+          <button onClick={() => window.print()}>
+            Print Case Sheet
+          </button>
+        </div>
+
+      </div>
+
+      {loading && (
+        <p className="empty-note">Loading saved case sheet…</p>
+      )}
+
+      <div className="checklist-title">
+        <h1>SOUTHERN RAILWAY HEADQUARTERS HOSPITAL</h1>
+        <h2>EYE DEPARTMENT, PERAMBUR</h2>
+        <h2>EYE EXAMINATION CASE SHEET</h2>
+      </div>
+
+      <section>
+        <h3>Patient Details</h3>
+
+        <div className="form-grid">
+          <EditableField label="Name" value={formData.name} onChange={(v) => updateField('name', v)} />
+          <EditableField label="Age" value={formData.age} onChange={(v) => updateField('age', v)} />
+          <EditableField label="Sex" value={formData.sex} onChange={(v) => updateField('sex', v)} />
+          <EditableField label="UMID Number" value={formData.umid} onChange={(v) => updateField('umid', v)} />
+          <EditableField label="CR Number" value={formData.crNo} onChange={(v) => updateField('crNo', v)} />
+          <EditableField label="Phone Number" value={formData.phone} onChange={(v) => updateField('phone', v)} />
+
+          <div className="field">
+            <label>Date of Examination</label>
+            <input
+              type="date"
+              value={formData.examDate || ''}
+              onChange={(e) => updateField('examDate', e.target.value)}
+            />
+          </div>
+
+          <div className="full-width">
+            <EditableField label="Address" value={formData.address} onChange={(v) => updateField('address', v)} />
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h3>Complaints &amp; History</h3>
+
+        <EditableTextArea label="Chief Complaints" value={formData.complaints} onChange={(v) => updateField('complaints', v)} />
+        <EditableField label="Duration" value={formData.duration} onChange={(v) => updateField('duration', v)} />
+        <EditableTextArea label="History of Present Illness" value={formData.presentHistory} onChange={(v) => updateField('presentHistory', v)} />
+        <EditableTextArea label="Past Ocular History" value={formData.pastOcular} onChange={(v) => updateField('pastOcular', v)} rows={2} />
+        <EditableTextArea label="Past Surgical History" value={formData.pastSurgical} onChange={(v) => updateField('pastSurgical', v)} rows={2} />
+        <EditableTextArea label="Systemic Illness" value={formData.systemicIllness} onChange={(v) => updateField('systemicIllness', v)} rows={2} />
+        <EditableField label="Drug History / Allergies" value={formData.drugAllergy} onChange={(v) => updateField('drugAllergy', v)} />
+        <EditableField label="Family History" value={formData.familyHistory} onChange={(v) => updateField('familyHistory', v)} />
+      </section>
+
+      <section>
+        <h3>Ocular Examination</h3>
+
+        <table className="checklist-table">
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>RE</th>
+              <th>LE</th>
+            </tr>
+          </thead>
+          <tbody>
+            {eyeRow('Vision', 'vision')}
+            {eyeRow('Pinhole', 'pinhole')}
+            {eyeRow('BCVA', 'bcva')}
+            {eyeRow('Refraction', 'refraction')}
+            {eyeRow('IOP', 'iop')}
+            {eyeRow('Lids / Adnexa', 'lids')}
+            {eyeRow('Conjunctiva', 'conjunctiva')}
+            {eyeRow('Cornea', 'cornea')}
+            {eyeRow('Anterior Chamber', 'ac')}
+            {eyeRow('Iris / Pupil', 'irisPupil')}
+            {eyeRow('Lens', 'lensStatus')}
+            {eyeRow('Anterior Segment (notes)', 'anterior')}
+            {eyeRow('Fundus', 'fundus')}
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h3>Biometry</h3>
+
+        <table className="checklist-table">
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>RE</th>
+              <th>LE</th>
+            </tr>
+          </thead>
+          <tbody>
+            {eyeRow('K1', 'k1')}
+            {eyeRow('K2', 'k2')}
+            {eyeRow('Axial Length', 'axial')}
+            {eyeRow('ACD', 'acd')}
+            {eyeRow('IOL Power', 'iol')}
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h3>Diagnosis &amp; Plan</h3>
+
+        <EditableField label="Diagnosis" value={formData.diagnosis} onChange={(v) => updateField('diagnosis', v)} />
+        <EditableTextArea label="Treatment / Advice" value={formData.treatment} onChange={(v) => updateField('treatment', v)} />
+
+        <div className="form-grid">
+          <EditableField label="Surgery Planned For (Eye)" value={formData.surgeryEye} onChange={(v) => updateField('surgeryEye', v)} />
+          <EditableField label="Procedure" value={formData.surgeryProcedure} onChange={(v) => updateField('surgeryProcedure', v)} />
+          <EditableField label="Follow-up" value={formData.followUp} onChange={(v) => updateField('followUp', v)} />
+          <EditableField label="RE Date of Admission" value={formData.reAdmission} onChange={(v) => updateField('reAdmission', v)} />
+          <EditableField label="LE Date of Admission" value={formData.leAdmission} onChange={(v) => updateField('leAdmission', v)} />
+          <EditableField label="Examined By" value={formData.examinedBy} onChange={(v) => updateField('examinedBy', v)} />
+        </div>
+
+        <EditableTextArea label="Remarks" value={formData.remarks} onChange={(v) => updateField('remarks', v)} rows={2} />
+      </section>
 
     </div>
   )

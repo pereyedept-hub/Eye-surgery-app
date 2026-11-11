@@ -390,3 +390,60 @@ button:disabled {
   }
 
 }
+
+/* Case sheet + row action buttons */
+
+.row-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.checklist textarea {
+  width: 100%;
+  padding: 9px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+/* Print the checklist and case sheet (previously only the theatre list printed) */
+@media print {
+
+  .checklist,
+  .checklist *,
+  .case-sheet,
+  .case-sheet * {
+    visibility: visible;
+  }
+
+  .checklist {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 0;
+    box-shadow: none;
+  }
+
+  .checklist button {
+    display: none;
+  }
+
+  .checklist input,
+  .checklist textarea {
+    border: none;
+    background: transparent;
+    padding: 0;
+    resize: none;
+  }
+
+  .checklist-table th,
+  .checklist-table td {
+    font-size: 11px;
+    padding: 4px;
+  }
+
+}
