@@ -31,11 +31,20 @@ function normalizeDate(value) {
   }
 
   if (typeof value === 'number') {
-    return formatDateYMD(excelSerialToDate(value))
+    const d = excelSerialToDate(value)
+    return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`
   }
 
   const str = String(value).trim()
   if (!str) return null
+
+  // ISO with a time part (e.g. 2026-08-14T18:30:00.000Z): convert to the local date
+  if (/^\d{4}-\d{2}-\d{2}T/.test(str)) {
+    const parsedIso = new Date(str)
+    if (!isNaN(parsedIso.getTime())) {
+      return formatDateYMD(parsedIso)
+    }
+  }
 
   // ISO: YYYY-MM-DD
   let match = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/)
@@ -78,6 +87,24 @@ function getValue(record, columnName) {
   const key = Object.keys(record).find(
     (key) => key.trim().toLowerCase() === columnName.trim().toLowerCase()
   )
+
+  return key ? record[key] : ''
+}
+
+// Finds the admission date for one eye. Tries the exact header first, then
+// any header that mentions "admission" and the eye (RE/LE/right/left).
+function getAdmissionDate(record, eye) {
+  const exact = getValue(record, `${eye} DATE OF ADMISSION`)
+  if (exact !== '' && exact !== undefined && exact !== null) return exact
+
+  const words = eye === 'RE' ? ['re ', 're_', '[re', 'right'] : ['le ', 'le_', '[le', 'left']
+  const key = Object.keys(record).find((k) => {
+    const lower = k.trim().toLowerCase() + ' '
+    return (
+      lower.includes('admission') &&
+      words.some((w) => lower.startsWith(w) || lower.includes(w))
+    )
+  })
 
   return key ? record[key] : ''
 }
@@ -159,8 +186,8 @@ function App() {
     }
 
     const matchingRecords = records.filter((record) => {
-      const reDate = normalizeDate(getValue(record, 'RE DATE OF ADMISSION'))
-      const leDate = normalizeDate(getValue(record, 'LE DATE OF ADMISSION'))
+      const reDate = normalizeDate(getAdmissionDate(record, 'RE'))
+      const leDate = normalizeDate(getAdmissionDate(record, 'LE'))
 
       return (reDate && reDate === target) || (leDate && leDate === target)
     })
@@ -178,6 +205,25 @@ function App() {
       eyeToBeOperated: '',
       surgery: ''
     }))
+
+    if (list.length === 0) {
+      const sample = records[0] || {}
+      const admissionHeaders = Object.keys(sample).filter((k) =>
+        k.toLowerCase().includes('admission')
+      )
+      const found = admissionHeaders.length
+        ? admissionHeaders
+            .map((k) => `"${k}" (e.g. ${String(sample[k])})`)
+            .join(', ')
+        : 'none \u2014 no column with "admission" in its name'
+
+      alert(
+        `No patients have an admission date of ${formatDateDisplay(target)}.\n\n` +
+          `Admission columns found in your file: ${found}\n\n` +
+          `Check the date, or that these columns hold the dates you expect. ` +
+          `You can still add patients manually.`
+      )
+    }
 
     setTheatreList(list)
     setShowTheatreList(true)
