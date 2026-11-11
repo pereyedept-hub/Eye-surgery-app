@@ -1155,6 +1155,21 @@ function EditableTextArea({ label, value, onChange, rows = 3 }) {
   )
 }
 
+// Use the value from the sheet when there is one, otherwise a default.
+function fromSheetOr(value, fallback) {
+  return value !== undefined && value !== null && String(value).trim() !== ''
+    ? value
+    : fallback
+}
+
+// Examination fields that start out as "normal" unless the sheet says otherwise.
+const EXAM_DEFAULT_KEYS = [
+  'lidsRE', 'lidsLE', 'conjunctivaRE', 'conjunctivaLE',
+  'corneaRE', 'corneaLE', 'acRE', 'acLE',
+  'irisPupilRE', 'irisPupilLE', 'lensStatusRE', 'lensStatusLE',
+  'anteriorRE', 'anteriorLE', 'fundusRE', 'fundusLE'
+]
+
 function admissionDisplay(record, eye) {
   const ymd = normalizeDate(getAdmissionDate(record, eye))
   return ymd ? formatDateDisplay(ymd) : ''
@@ -1175,17 +1190,16 @@ function CaseSheet({ record, onBack }) {
     crNo: getValue(record, 'CR Number'),
     phone: getValue(record, 'Phone number'),
     diagnosis: getValue(record, 'Diagnosis'),
-    systemicIllness: getValue(record, 'Systemic Illness'),
     remarks: getValue(record, 'Remarks'),
 
     visionRE: getValue(record, 'Vision [Right Eye ]'),
     visionLE: getValue(record, 'Vision [Left Eye ]'),
     iopRE: getValue(record, 'RE IOP'),
     iopLE: getValue(record, 'LE IOP'),
-    anteriorRE: getValue(record, 'RE ANTERIOR SEGMENT'),
-    anteriorLE: getValue(record, 'LE ANTERIOR SEGMENT'),
-    fundusRE: getValue(record, 'RE Fundus'),
-    fundusLE: getValue(record, 'LE Fundus'),
+    anteriorRE: fromSheetOr(getValue(record, 'RE ANTERIOR SEGMENT'), 'Normal'),
+    anteriorLE: fromSheetOr(getValue(record, 'LE ANTERIOR SEGMENT'), 'Normal'),
+    fundusRE: fromSheetOr(getValue(record, 'RE Fundus'), 'Normal'),
+    fundusLE: fromSheetOr(getValue(record, 'LE Fundus'), 'Normal'),
 
     k1RE: getValue(record, 'RE K1'),
     k1LE: getValue(record, 'LE K1'),
@@ -1222,23 +1236,17 @@ function CaseSheet({ record, onBack }) {
     examDate: formatDateYMD(new Date()),
     address: '',
     complaints: '',
-    duration: '',
-    presentHistory: '',
-    pastOcular: '',
-    pastSurgical: '',
-    drugAllergy: '',
-    familyHistory: '',
 
     pinholeRE: '', pinholeLE: '',
     bcvaRE: '', bcvaLE: '',
     refractionRE: '', refractionLE: '',
 
-    lidsRE: '', lidsLE: '',
-    conjunctivaRE: '', conjunctivaLE: '',
-    corneaRE: '', corneaLE: '',
-    acRE: '', acLE: '',
-    irisPupilRE: '', irisPupilLE: '',
-    lensStatusRE: '', lensStatusLE: '',
+    lidsRE: 'Normal', lidsLE: 'Normal',
+    conjunctivaRE: 'Quiet', conjunctivaLE: 'Quiet',
+    corneaRE: 'Clear', corneaLE: 'Clear',
+    acRE: 'Normal depth, quiet', acLE: 'Normal depth, quiet',
+    irisPupilRE: 'Normal, reacting to light', irisPupilLE: 'Normal, reacting to light',
+    lensStatusRE: 'Normal', lensStatusLE: 'Normal',
 
     treatment: '',
     surgeryEye: '',
@@ -1260,7 +1268,12 @@ function CaseSheet({ record, onBack }) {
       .then((saved) => {
         if (!cancelled && saved) {
           // saved values win over the sheet pre-fill
-          setFormData((prev) => ({ ...prev, ...saved }))
+          const cleaned = Object.fromEntries(
+            Object.entries(saved).filter(
+              ([key, value]) => !(value === '' && EXAM_DEFAULT_KEYS.includes(key))
+            )
+          )
+          setFormData((prev) => ({ ...prev, ...cleaned }))
         }
       })
       .catch(() => {
@@ -1365,16 +1378,9 @@ function CaseSheet({ record, onBack }) {
       </section>
 
       <section>
-        <h3>Complaints &amp; History</h3>
+        <h3>Complaints</h3>
 
         <EditableTextArea label="Chief Complaints" value={formData.complaints} onChange={(v) => updateField('complaints', v)} />
-        <EditableField label="Duration" value={formData.duration} onChange={(v) => updateField('duration', v)} />
-        <EditableTextArea label="History of Present Illness" value={formData.presentHistory} onChange={(v) => updateField('presentHistory', v)} />
-        <EditableTextArea label="Past Ocular History" value={formData.pastOcular} onChange={(v) => updateField('pastOcular', v)} rows={2} />
-        <EditableTextArea label="Past Surgical History" value={formData.pastSurgical} onChange={(v) => updateField('pastSurgical', v)} rows={2} />
-        <EditableTextArea label="Systemic Illness" value={formData.systemicIllness} onChange={(v) => updateField('systemicIllness', v)} rows={2} />
-        <EditableField label="Drug History / Allergies" value={formData.drugAllergy} onChange={(v) => updateField('drugAllergy', v)} />
-        <EditableField label="Family History" value={formData.familyHistory} onChange={(v) => updateField('familyHistory', v)} />
       </section>
 
       <section>
