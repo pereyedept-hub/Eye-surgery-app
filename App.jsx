@@ -1198,6 +1198,23 @@ function CaseSheet({ record, onBack }) {
     iolRE: getValue(record, 'REIOL Power'),
     iolLE: getValue(record, 'LEIOL Power'),
 
+    tc: getValue(record, 'TC'),
+    dc: getValue(record, 'DC'),
+    hb: getValue(record, 'Hb%'),
+    fastingSugar: getValue(record, 'Fasting Sugar'),
+    postprandialSugar: getValue(record, 'Postprandial Sugar'),
+    pt: getValue(record, 'PT'),
+    inr: getValue(record, 'INR'),
+    urea: getValue(record, 'Urea'),
+    creatinine: getValue(record, 'Creatinine'),
+    hbsag: getValue(record, 'Serology [HBSAG]'),
+    tpha: getValue(record, 'Serology [TPHA]'),
+    hiv: getValue(record, 'Serology [HIV]'),
+    hcv: getValue(record, 'Serology [HCV]'),
+    fitness: getValue(record, 'Fitness obtained from'),
+    scan: getValue(record, 'A SCAN DONE WITH'),
+    formula: getValue(record, 'FORMULA USED'),
+
     reAdmission: admissionDisplay(record, 'RE'),
     leAdmission: admissionDisplay(record, 'LE'),
 
@@ -1408,6 +1425,32 @@ function CaseSheet({ record, onBack }) {
             {eyeRow('IOL Power', 'iol')}
           </tbody>
         </table>
+      </section>
+
+      <section>
+        <h3>Investigations</h3>
+
+        <div className="investigation-grid">
+          <EditableField label="TC" value={formData.tc} onChange={(v) => updateField('tc', v)} />
+          <EditableField label="DC" value={formData.dc} onChange={(v) => updateField('dc', v)} />
+          <EditableField label="Hb%" value={formData.hb} onChange={(v) => updateField('hb', v)} />
+          <EditableField label="Fasting Sugar" value={formData.fastingSugar} onChange={(v) => updateField('fastingSugar', v)} />
+          <EditableField label="Postprandial Sugar" value={formData.postprandialSugar} onChange={(v) => updateField('postprandialSugar', v)} />
+          <EditableField label="PT" value={formData.pt} onChange={(v) => updateField('pt', v)} />
+          <EditableField label="INR" value={formData.inr} onChange={(v) => updateField('inr', v)} />
+          <EditableField label="Urea" value={formData.urea} onChange={(v) => updateField('urea', v)} />
+          <EditableField label="Creatinine" value={formData.creatinine} onChange={(v) => updateField('creatinine', v)} />
+          <EditableField label="HBSAG" value={formData.hbsag} onChange={(v) => updateField('hbsag', v)} />
+          <EditableField label="TPHA" value={formData.tpha} onChange={(v) => updateField('tpha', v)} />
+          <EditableField label="HIV" value={formData.hiv} onChange={(v) => updateField('hiv', v)} />
+          <EditableField label="HCV" value={formData.hcv} onChange={(v) => updateField('hcv', v)} />
+        </div>
+
+        <div className="form-grid">
+          <EditableField label="Fitness obtained from" value={formData.fitness} onChange={(v) => updateField('fitness', v)} />
+          <EditableField label="A-Scan done with" value={formData.scan} onChange={(v) => updateField('scan', v)} />
+          <EditableField label="Formula used" value={formData.formula} onChange={(v) => updateField('formula', v)} />
+        </div>
       </section>
 
       <section>
